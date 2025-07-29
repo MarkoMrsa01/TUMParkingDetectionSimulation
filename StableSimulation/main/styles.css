@@ -1,0 +1,1398 @@
+* {
+  box-sizing: border-box;
+  font-family: 'Inter', sans-serif;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+  font-family: Arial, sans-serif;
+  background-color: #f0f0f0;
+}
+
+#container {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
+  pointer-events: auto;
+}
+
+/* Status classes */
+.free {
+  color: green;
+  font-weight: bold;
+}
+
+.occupied {
+  color: red;
+  font-weight: bold;
+}
+
+.unknown {
+  color: gray;
+  font-style: italic;
+}
+
+/* Hide old UI controls */
+#uiControls {
+  display: none;
+}
+
+/* Parking Table Styles */
+.parking-table-container {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 2px solid #333;
+    border-radius: 8px;
+    padding: 10px;
+    max-width: 530px;
+    max-height: 60vh;
+    z-index: 1000;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.parking-table-container h3 {
+    margin: 0 0 8px 0;
+    font-size: 16px;
+    color: #333;
+    text-align: center;
+}
+
+.parking-status-summary {
+    text-align: center;
+    margin-bottom: 8px;
+    padding: 5px;
+    background: #f0f0f0;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: bold;
+}
+
+#occupancyRate {
+    color: #0066cc;
+    font-size: 12px;
+}
+
+#statusDescription {
+    color: #666;
+    font-size: 11px;
+}
+
+.table-scroll-container {
+    max-height: 42vh;
+    overflow-y: auto;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    z-index: 1004;
+}
+
+.parking-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+}
+
+.parking-table th {
+    background: #333;
+    color: white;
+    padding: 6px 4px;
+    text-align: center;
+    font-size: 11px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+/* Force black text for all parking table content on hover */
+.parking-table-container .parking-table tr:hover td,
+.parking-table-container .parking-table td:hover,
+.parking-table-container .parking-table tr:hover td *,
+.parking-table-container .parking-table td:hover * {
+    color: #000 !important;
+    background-color: inherit !important;
+}
+
+/* Specific rules for free and occupied rows */
+.parking-table-container .parking-table tr.free:hover td {
+    color: #000 !important;
+    background-color: rgba(0, 255, 0, 0.1) !important;
+}
+
+.parking-table-container .parking-table tr.occupied:hover td {
+    color: #000 !important;
+    background-color: rgba(255, 0, 0, 0.1) !important;
+}
+
+.parking-table td {
+    padding: 4px 2px;
+    text-align: center;
+    border-bottom: 1px solid #ddd;
+    color: #000 !important; /* Osiguraj da je tekst crn */
+}
+
+.parking-table tr.free {
+    background: rgba(0, 255, 0, 0.1);
+}
+
+.parking-table tr.occupied {
+    background: rgba(255, 0, 0, 0.1);
+}
+
+/* Override any browser defaults or other CSS that might change text color on hover */
+.parking-table-container .parking-table tr:hover td,
+.parking-table-container .parking-table td:hover,
+.parking-table-container .parking-table tr:hover td *,
+.parking-table-container .parking-table td:hover *,
+.parking-table-container .parking-table tr:hover td span,
+.parking-table-container .parking-table tr:hover td div,
+.parking-table-container .parking-table tr:hover td button {
+    color: #000 !important;
+    background-color: inherit !important;
+}
+
+/* Specific rules for free and occupied rows with maximum specificity */
+.parking-table-container .parking-table tr.free:hover td,
+.parking-table-container .parking-table tr.free:hover td * {
+    color: #000 !important;
+    background-color: rgba(0, 255, 0, 0.1) !important;
+}
+
+.parking-table-container .parking-table tr.occupied:hover td,
+.parking-table-container .parking-table tr.occupied:hover td * {
+    color: #000 !important;
+    background-color: rgba(255, 0, 0, 0.1) !important;
+}
+
+/* Nuclear option - override everything with maximum specificity */
+.parking-table-container .parking-table tr:hover td,
+.parking-table-container .parking-table tr:hover td *,
+.parking-table-container .parking-table tr:hover td span,
+.parking-table-container .parking-table tr:hover td div,
+.parking-table-container .parking-table tr:hover td button,
+.parking-table-container .parking-table tr:hover td strong,
+.parking-table-container .parking-table tr:hover td em,
+.parking-table-container .parking-table tr:hover td small,
+.parking-table-container .parking-table tr:hover td b,
+.parking-table-container .parking-table tr:hover td i {
+    color: #000 !important;
+    background-color: inherit !important;
+    text-decoration-color: #000 !important;
+    border-color: inherit !important;
+}
+
+/* Force black text for all table content regardless of hover state */
+.parking-table-container .parking-table td,
+.parking-table-container .parking-table td * {
+    color: #000 !important;
+}
+
+.parking-table button {
+    padding: 2px 4px;
+    margin: 1px;
+    font-size: 9px;
+    border: none;
+    border-radius: 2px;
+    cursor: pointer;
+    min-width: 40px;
+}
+
+.parking-table button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.parking-table button:first-child {
+    background: #4CAF50;
+    color: white;
+}
+
+.parking-table button:last-child {
+    background: #f44336;
+    color: white;
+}
+
+.parking-table button:hover:not(:disabled) {
+    opacity: 0.8;
+}
+
+/* Legend - Top Right */
+#legendContainer {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+}
+
+#toggleLegend {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  font-size: 1.3em;
+  font-weight: bold;
+  background: #f0f0f0;
+  border: 1.5px solid #000;
+  color: #000;
+  padding: 8px 0 8px 0;
+  cursor: pointer;
+  outline: none;
+  width: 220px !important;
+  min-width: 180px !important;
+  max-width: 240px !important;
+  text-align: left;
+  margin-bottom: 4px;
+  transition: color 0.2s;
+  z-index: 1001;
+  box-sizing: border-box;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+#toggleLegend:hover {
+  color: #1976d2;
+}
+
+#legend {
+  position: fixed;
+  top: 70px;
+  right: 20px;
+  width: 250px;
+  background-color: rgba(255, 255, 255, 0.95);
+  border: 2px solid #333;
+  border-radius: 8px;
+  padding: 15px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  font-size: 12px;
+  z-index: 1000;
+}
+
+#legend.hidden {
+  display: none;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.legend-color {
+  width: 20px;
+  height: 15px;
+  border-radius: 3px;
+}
+
+.legend-canvas {
+  width: 30px;
+  height: 30px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  vertical-align: middle;
+}
+
+/* Report Container */
+#reportContainer {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  width: 200px;
+  max-height: 300px;
+  background-color: rgba(255, 255, 255, 0.95);
+  border: 2px solid #333;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  padding: 15px;
+  font-family: 'Segoe UI', sans-serif;
+  font-size: 12px;
+  color: #333;
+  z-index: 1000;
+  overflow-y: auto;
+}
+
+#reportContainer h3 {
+  margin: 0 0 10px 0;
+  color: #495057;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.report-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.report-table th,
+.report-table td {
+  padding: 8px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+.report-table th {
+  background-color: #f8f9fa;
+  font-weight: bold;
+  color: #333;
+}
+
+.report-table tr:nth-child(even) {
+  background-color: #f8f9fa;
+}
+
+/* Utility classes */
+.hidden {
+  display: none !important;
+}
+
+.label-renderer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.parking-label {
+  background-color: white !important;
+  color: black !important;
+  padding: 2px 4px !important;
+  border-radius: 2px !important;
+  font-size: 12px !important;
+  font-weight: bold !important;
+  border: 1px solid #ccc !important;
+  pointer-events: none !important;
+}
+
+/* Responsive design */
+@media (max-width: 1200px) {
+  #parkingTableContainer {
+    width: 280px;
+    height: 350px;
+  }
+  
+  #reportContainer {
+    width: 350px;
+  }
+}
+
+@media (max-width: 768px) {
+  #parkingTableContainer {
+    width: 250px;
+    height: 300px;
+    top: 10px;
+    left: 10px;
+  }
+  
+  #legendContainer {
+    bottom: 10px;
+    right: 10px;
+  }
+  
+  #reportContainer {
+    width: 300px;
+    bottom: 10px;
+    left: 10px;
+  }
+  
+  .navigation-panel {
+    bottom: 60px;
+    left: 10px;
+    min-width: 200px;
+    max-width: 95vw;
+  }
+  
+  .navigation-open-btn {
+    bottom: 30px;
+    left: 10px;
+  }
+}
+
+.control-panel {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 2px solid #333;
+    border-radius: 8px;
+    padding: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    min-width: 180px;
+    max-width: 300px;
+}
+
+.control-panel h3 {
+    margin: 0 0 8px 0;
+    color: #333;
+    font-size: 14px;
+}
+
+.control-group {
+    margin-bottom: 8px;
+}
+
+.control-group label {
+    display: block;
+    margin-bottom: 2px;
+    font-weight: bold;
+    color: #555;
+    font-size: 11px;
+}
+
+.control-group input[type="range"] {
+    width: 100%;
+    margin: 2px 0;
+}
+
+.control-group button {
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 2px 6px;
+    border-radius: 2px;
+    cursor: pointer;
+    font-size: 9px;
+    min-width: 40px;
+    margin: 1px 0;
+}
+
+.control-group button:hover {
+    background: #0056b3;
+    opacity: 0.8;
+}
+
+#speedValue {
+    display: inline-block;
+    margin-left: 6px;
+    font-weight: bold;
+    color: #007bff;
+    min-width: 40px;
+    font-size: 11px;
+}
+
+#vehicleButtons.hidden {
+  display: none;
+}
+
+#vehicleButtons:not(.hidden) {
+  display: block;
+}
+
+#toggleParkingTable {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  font-size: 1.3em;
+  font-weight: bold;
+  background: white;
+  border: none;
+  color: #000;
+  padding: 8px 0 8px 0;
+  cursor: pointer;
+  outline: none;
+  width: 250px !important;
+  min-width: 210px !important;
+  max-width: 270px !important;
+  text-align: left;
+  margin-bottom: 4px;
+  transition: color 0.2s;
+  border-radius: 0;
+  box-shadow: none;
+}
+#toggleParkingTable:hover {
+  color: #000;
+  background: #f8f8f8;
+}
+
+#toggleSimulationControls {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  font-size: 1.1em;
+  font-weight: bold;
+  background: #f0f0f0;
+  border: 1.5px solid #000;
+  color: #000;
+  padding: 6px 0 6px 0;
+  cursor: pointer;
+  outline: none;
+  width: 220px;
+  min-width: 180px;
+  max-width: 240px;
+  text-align: left;
+  margin-bottom: 2px;
+  transition: color 0.2s;
+}
+#toggleSimulationControls:hover {
+  color: #1976d2;
+}
+
+.legend-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+  margin-top: 0;
+  z-index: 1003;
+}
+.legend-table th, .legend-table td {
+  font-size: 11px;
+  padding: 6px 4px;
+  text-align: center;
+  border-bottom: 1px solid #ddd;
+}
+.legend-table th {
+  background: #333;
+  color: white;
+  padding: 6px 4px;
+  text-align: center;
+  font-size: 11px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.legend-table tr:nth-child(even) {
+  background-color: rgba(0, 255, 0, 0.1);
+}
+
+.legend-table tr:nth-child(odd) {
+  background-color: rgba(255, 255, 255, 0.9);
+}
+
+.legend-symbol {
+  display: inline-block;
+  width: 28px;
+  height: 20px;
+  border-radius: 3px;
+  vertical-align: middle;
+}
+.legend-symbol--free {
+  background: #83EB21
+}
+.legend-symbol--occupied {
+  background: #E5260D;
+}
+
+.legend-symbol--vehicle {
+  width: 60px;
+  height: 30px;
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: 8px;
+  background: transparent;
+}
+.legend-symbol--building {
+  background: #cccccc;
+}
+.legend-symbol--pointcloud {
+  background: #e0e0e0;
+}
+.legend-symbol--sumovehicle {
+  background: #2118D0;
+  width: 36px;
+  height: 20px;
+  border-radius: 3px;
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: 0px;
+}
+
+.legend-toggle {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  font-size: 1.2em;
+  font-weight: bold;
+  background: #f0f0f0;
+  border: 1px solid #1976d2;
+  color: #1976d2;
+  padding: 8px 18px;
+  border-radius: 6px;
+  cursor: pointer;
+  outline: none;
+  width: 220px;
+  min-width: 180px;
+  max-width: 240px;
+  margin-bottom: 4px;
+  transition: background 0.2s, color 0.2s;
+}
+.legend-toggle:hover {
+  background: #1976d2;
+  color: #fff;
+}
+
+.legend-panel {
+  position: fixed;
+  z-index: 1000;
+  background: rgba(255, 255, 255, 0.97);
+  border: 2px solid #333;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  padding: 18px 18px 14px 18px;
+  min-width: 220px;
+  max-width: 320px;
+  width: 260px;
+  min-height: 180px;
+  max-height: 340px;
+  overflow-y: auto;
+  display: block;
+  transition: opacity 0.2s, visibility 0.2s;
+}
+
+.legend-panel .table-scroll-container {
+  max-height: 260px;
+  overflow-y: auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+#legendContent {
+  display: block !important;
+  width: 100%;
+  height: auto;
+}
+
+.legend-panel.hidden {
+  display: none !important;
+}
+#openLegendPanel {
+  top: 20px;
+  right: 20px;
+  position: fixed;
+  z-index: 1100;
+}
+
+#openSimulationPanel {
+  bottom: 20px;
+  right: 50px;
+  position: fixed;
+  z-index: 1100;
+}
+
+.simulation-panel {
+  position: fixed;
+  z-index: 1000;
+  background: rgba(255, 255, 255, 0.97);
+  border: 2px solid #333;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  padding: 18px 18px 14px 18px;
+  min-width: 280px;
+  max-width: 400px;
+  width: 320px;
+  min-height: 220px;
+  max-height: 400px;
+  overflow-y: auto;
+  display: block;
+  transition: opacity 0.2s, visibility 0.2s;
+}
+
+.simulation-panel.hidden {
+  display: none !important;
+}
+
+#simulationControlsContent {
+  display: block !important;
+  width: 100%;
+  height: auto;
+}
+
+.simulation-panel .control-group {
+  margin-bottom: 8px;
+}
+
+.simulation-panel .control-group label {
+  display: block;
+  margin-bottom: 2px;
+  font-weight: bold;
+  color: #555;
+  font-size: 11px;
+}
+
+.simulation-panel .control-group input[type="range"] {
+  width: 100%;
+  margin: 2px 0;
+}
+
+.simulation-panel .control-group button {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 2px 6px;
+  border-radius: 2px;
+  cursor: pointer;
+  font-size: 9px;
+  min-width: 40px;
+  margin: 1px 0;
+}
+
+.legend-title {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  font-size: 14px;
+  font-weight: bold;
+  padding: 8px 0 8px 0;
+  margin-bottom: 8px;
+  color: #222;
+}
+.legend-table th, .legend-table td {
+  font-size: 1.08em;
+  padding: 10px;
+}
+
+.legend-table td .legend-symbol {
+  font-size: 1.5em;
+  text-align: center;
+  line-height: 1.1;
+}
+
+.legend-symbol {
+  width: 28px;
+  height: 20px;
+}
+.legend-symbol--sumovehicle {
+  width: 28px;
+  height: 20px;
+}
+
+.pointcloud-toggle {
+  margin: 2px 4px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  border: 1px solid #1976d2;
+  background: #f0f8ff;
+  color: #1976d2;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.pointcloud-toggle.active {
+  background: #1976d2;
+  color: #fff;
+}
+.pointcloud-toggle:hover {
+  background: #1976d2;
+  color: #fff;
+}
+#pausePointclouds {
+  margin-top: 8px;
+  padding: 4px 12px;
+  border-radius: 4px;
+  border: 1px solid #222;
+  background: #fff;
+  color: #222;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+#pausePointclouds.active, #pausePointclouds:hover {
+  background: #222;
+  color: #fff;
+}
+
+.parking-table-toggle, .simulation-controls-toggle {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  font-size: 1.2em;
+  font-weight: bold;
+  background: #f0f0f0;
+  border: 1px solid #1976d2;
+  color: #1976d2;
+  padding: 8px 18px;
+  border-radius: 6px;
+  cursor: pointer;
+  outline: none;
+  width: 220px;
+  min-width: 180px;
+  max-width: 240px;
+  margin-bottom: 4px;
+  transition: background 0.2s, color 0.2s;
+}
+.parking-table-toggle:hover, .simulation-controls-toggle:hover {
+  background: #1976d2;
+  color: #fff;
+}
+
+.parking-table-container, .control-panel {
+  min-width: 100px;
+  max-width: 400px;
+  padding: 8px 10px 8px 10px;
+}
+
+#legendContent,
+#parkingTableContent,
+#simulationControlsContent {
+  display: none;
+  z-index: 1002;
+}
+
+.pointcloud-pause-toggle {
+  margin: 2px 4px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  border: 1px solid #1976d2;
+  background: #fff;
+  color: #1976d2;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.pointcloud-pause-toggle:hover {
+  background: #1976d2;
+  color: #fff;
+}
+
+#pointcloudControls .control-group,
+#pointcloudButtons,
+#pointcloudButtons > div,
+#pointcloudButtons button,
+#pointcloudControls label {
+  font-size: 11px !important;
+}
+
+#pointcloudControls label {
+  vertical-align: middle;
+  margin-right: 4px;
+  font-weight: 500;
+}
+
+#pointcloudButtons {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+#pointcloudButtons > div {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 2px;
+  align-items: center;
+}
+
+#pointcloudButtons button,
+.pointcloud-toggle,
+.pointcloud-pause-toggle {
+  font-size: 9px !important;
+  padding: 2px 6px;
+  border-radius: 2px;
+  min-width: 40px;
+}
+
+#pausePointclouds {
+  margin-top: 6px !important;
+  font-size: 9px !important;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 2px 6px;
+  border-radius: 2px;
+  min-width: 40px;
+}
+
+/* Vehicle Speed Row Styles */
+.vehicle-speed-row {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.vehicle-speed-row label {
+  display: block;
+  margin-bottom: 2px;
+  font-size: 11px;
+  font-weight: bold;
+  color: #555;
+}
+
+.vehicle-speed-row input[type="range"] {
+  width: 100%;
+  margin: 0;
+}
+
+.vehicle-speed-row span {
+  margin: 0;
+  display: inline-block;
+  margin-left: 6px;
+  font-weight: bold;
+  color: #007bff;
+  min-width: 40px;
+  font-size: 11px;
+}
+
+/* Control Group Divider */
+.control-divider {
+  margin: 4px 0 4px 0;
+  border: none;
+  border-top: 1px solid #eee;
+}
+
+/* Pointcloud Controls Styles */
+.pointcloud-controls {
+  margin-bottom: 4px;
+}
+
+.pointcloud-controls-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.pointcloud-controls-header label {
+  margin: 0;
+  font-size: 11px;
+}
+
+.pointcloud-controls-header div {
+  display: flex;
+  gap: 4px;
+}
+
+.pause-pointclouds-btn {
+  margin-top: 4px;
+}
+
+.navigation-panel {
+  position: fixed;
+  bottom: 80px;
+  left: 20px;
+  background: rgba(255, 255, 255, 0.95);
+  border: 2px solid #333;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  z-index: 1500;
+  min-width: 220px;
+  max-width: 320px;
+  padding: 16px 18px 12px 18px;
+  font-size: 11px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.navigation-title {
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 6px;
+  text-align: center;
+  color: #333;
+}
+.navigation-row {
+  font-size: 11px;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #555;
+}
+.navigation-open-btn {
+  position: fixed;
+  bottom: 40px;
+  left: 20px;
+  background: #f0f0f0;
+  border: 1px solid #000000;
+  color: #000000;
+  font-size: 1.1em;
+  font-weight: bold;
+  border-radius: 6px;
+  padding: 8px 18px;
+  cursor: pointer;
+  z-index: 1501;
+  transition: background 0.2s, color 0.2s;
+}
+.navigation-open-btn:hover {
+  background: #000000;
+  color: #fff;
+}
+/* Removed close button styles - no longer needed */
+.navigation-panel.hidden {
+  display: none;
+}
+#navParkingInput {
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  width: 60px;
+} 
+
+/* Performance Panel Styles */
+.performance-panel {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  padding: 15px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  font-family: 'Segoe UI', sans-serif;
+  font-size: 12px;
+  color: #000;
+  z-index: 1000;
+  min-width: 300px;
+  max-width: 400px;
+}
+
+.performance-panel.hidden {
+  display: none;
+}
+
+.performance-title {
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  color: #333;
+  text-align: center;
+}
+
+.performance-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.performance-metric {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.performance-metric label {
+  font-weight: bold;
+  color: #555;
+}
+
+.performance-metric span {
+  font-weight: bold;
+  color: #333;
+}
+
+.performance-status {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 2px solid #eee;
+}
+
+.performance-status label {
+  display: block;
+  font-weight: bold;
+  color: #555;
+  margin-bottom: 5px;
+}
+
+.performance-bar {
+  width: 100%;
+  height: 20px;
+  background: #f0f0f0;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 5px;
+}
+
+.performance-bar-fill {
+  height: 100%;
+  background: linear-gradient(to right, #4caf50, #ff9800, #f44336);
+  transition: width 0.3s ease;
+  width: 30%;
+}
+
+.performance-status span {
+  font-weight: bold;
+  font-size: 11px;
+  text-align: center;
+  display: block;
+}
+
+.performance-open-btn {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #f0f0f0;
+  border: 1px solid #000000;
+  color: #000000;
+  padding: 8px 18px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  font-size: 12px;
+  font-weight: bold;
+  transition: background 0.2s, color 0.2s;
+  z-index: 1001;
+}
+
+.performance-open-btn:hover {
+  background: #000000;
+  color: #fff;
+} 
+
+/* Bottom Status Bar */
+.bottom-status-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 24px;
+  background: gray;
+  border-top: 1px solid #333;
+  padding: 0 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  font-size: 12px;
+  color: #000;
+  z-index: 2000;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  gap: 32px;
+}
+
+.performance-section,
+.camera-section,
+.source-section,
+.simulation-section {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.left-section {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.source-section {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  overflow: visible;
+}
+
+.source-section .status-item label,
+.source-section .status-item span {
+  white-space: nowrap;
+  overflow: visible;
+  text-overflow: unset;
+  max-width: none;
+}
+
+.source-section .status-item label {
+  margin-right: 0px;
+}
+
+.source-section .status-item span {
+  margin-left: 0;
+}
+/* #//ovdeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee */
+.status-section {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  min-width: 0;
+}
+
+.status-item {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.status-item label,
+.status-item span {
+  font-size: 12px;
+  font-weight: bold;
+  line-height: 16px;
+  padding: 0 2px;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Ukloni custom margin za GLTF Models */
+.status-item #gltfSource {
+  margin-left: 15;
+}
+
+.source-section .status-item span#rasterSource {
+  max-width: 400px;
+  min-width: 0;
+  display: inline-block;
+  overflow: visible;
+  text-overflow: unset;
+  white-space: nowrap;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.floating-panel-toggle {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  font-size: 1.2em;
+  font-weight: bold;
+  background: #f0f0f0;
+  border: 1.5px solid #000000;
+  color: #000000;
+  padding: 8px 18px;
+  border-radius: 6px;
+  cursor: pointer;
+  outline: none;
+  position: fixed;
+  right: 20px;
+  z-index: 1100;
+  min-width: 120px;
+  transition: background 0.2s, color 0.2s;
+}
+.floating-panel-toggle:hover {
+  background: #000000;
+  color: #fff;
+}
+#openNavigationPanel.floating-panel-toggle {
+  left: 20px;
+  right: auto;
+  bottom: 20px;
+}
+#openPerformancePanel.floating-panel-toggle {
+  left: 50%;
+  right: auto;
+  bottom: 20px;
+  transform: translateX(-50%);
+} 
+
+#cameraHeightDisplay {
+  position: fixed;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2000;
+  padding: 4px 16px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: italic;
+  color: black;
+  pointer-events: none;
+} 
+
+.memory-note {
+  font-size: 11px;
+  color: #888;
+  display: block;
+} 
+
+/* UNIFIED BUTTON HOVER STYLE */
+button:not(:disabled):hover, .floating-panel-toggle:hover, .navigation-open-btn:hover {
+  background: #000 !important;
+  color: #fff !important;
+} 
+
+/* Unify all main panel toggle buttons to have a solid background and border by default */
+.parking-table-toggle,
+.simulation-controls-toggle,
+.legend-toggle,
+.floating-panel-toggle,
+.navigation-open-btn {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  font-size: 1.2em;
+  font-weight: bold;
+  background: #f0f0f0;
+  border: 1.5px solid #000;
+  color: #000;
+  padding: 8px 18px;
+  border-radius: 6px;
+  cursor: pointer;
+  outline: none;
+  width: 220px;
+  min-width: 180px;
+  max-width: 240px;
+  margin-bottom: 4px;
+  transition: background 0.2s, color 0.2s;
+  text-align: left;
+}
+
+/* Remove background: none and border: none from these classes if present */
+#toggleLegend,
+#toggleParkingTable,
+#toggleSimulationControls {
+  background: #f0f0f0;
+  border: 1.5px solid #000;
+  color: #000;
+  width: 220px;
+  min-width: 180px;
+  max-width: 240px;
+}
+
+#toggleParkingTable {
+  width: 250px !important;
+  min-width: 210px !important;
+  max-width: 270px !important;
+  border: none !important;
+  background: white !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+} 
+
+.legend-panel, #legendContainer {
+  width: 240px !important;
+  min-width: 180px;
+  max-width: 240px;
+  box-sizing: border-box;
+  display: block;
+  margin-right: 20px;
+  margin-left: auto;
+  padding-left: 0;
+  padding-right: 0;
+  padding: 4px 10px;
+  transition: padding 0.3s;
+}
+
+.legend-panel.open, #legendContainer.open {
+  padding: 16px 18px;
+  transition: padding 0.3s;
+}
+
+#legendContent {
+  width: 100%;
+  max-width: 240px;
+  box-sizing: border-box;
+  margin-top: 2px;
+} 
+
+.camera-section {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  overflow: hidden;
+} 
+
+.camera-section .status-item span {
+  margin-left: 10px;
+} 

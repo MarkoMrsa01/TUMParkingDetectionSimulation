@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Parking Detection System</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  
+  <!-- Loading Screen -->
+  <style>
+    #loadingScreen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #333333;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      color: black;
+      font-family: Arial, sans-serif;
+    }
+    #loadingScreen.hidden {
+      display: none;
+    }
+    .loading-spinner {
+      width: 50px;
+      height: 50px;
+      border: 5px solid rgba(0,0,0,0.3);
+      border-radius: 50%;
+      border-top-color: black;
+      animation: spin 1s ease-in-out infinite;
+      margin-bottom: 20px;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .loading-text {
+      font-size: 18px;
+      margin-bottom: 10px;
+      color: black;
+    }
+    .loading-progress {
+      width: 300px;
+      height: 4px;
+      background: rgba(0,0,0,0.3);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .loading-progress-bar {
+      height: 100%;
+      background: black;
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+  </style>
+</head>
+<body>
+  <!-- Loading Screen -->
+  <div id="loadingScreen">
+    <div class="loading-spinner"></div>
+    <div class="loading-text">Loading simulation...</div>
+    <div class="loading-progress">
+      <div class="loading-progress-bar" id="loadingProgressBar"></div>
+    </div>
+  </div>
+
+  <div id="container"></div>
+  
+  <!-- Real-time Parking Table -->
+  <div class="parking-table-container">
+    <button id="toggleParkingTable" class="parking-table-toggle">Real-time Parking Table</button>
+    <div class="parking-status-summary">
+      <span id="occupancyRate">236/236</span> - <span id="statusDescription">Free parking spots</span>
+    </div>
+    <div id="parkingTableContent">
+      <div class="table-scroll-container">
+        <table class="parking-table">
+          <thead>
+            <tr>
+              <th>UID</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="parkingTableBody">
+            <!-- Parking spots will be populated here -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Legend - Top Right -->
+  <button id="openLegendPanel" class="floating-panel-toggle legend-toggle">Legend</button>
+  <div id="legendPanel" class="legend-panel hidden">
+    <div id="legendContent">
+      <div class="table-scroll-container">
+        <table class="parking-table legend-table">
+          <thead>
+            <tr>
+              <th>Type</th>
+              <th>Symbol</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Free Parking Spot</td>
+              <td><span class="legend-symbol legend-symbol--free"></span></td>
+            </tr>
+            <tr>
+              <td>Occupied Parking Spot</td>
+              <td><span class="legend-symbol legend-symbol--occupied"></span></td>
+            </tr>
+            <tr>
+              <td>SUMO Vehicle Model</td>
+              <td><span class="legend-symbol legend-symbol--sumovehicle"></span></td>
+            </tr>
+            <tr>
+              <td>Buildings</td>
+              <td><span class="legend-symbol">🏢</span></td>
+            </tr>
+            <tr>
+              <td>Pointclouds</td>
+              <td><span class="legend-symbol">☁️</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Simulation Controls - Bottom Right -->
+  <button id="openSimulationPanel" class="floating-panel-toggle">Simulation Controls</button>
+  <div id="simulationPanel" class="simulation-panel hidden">
+    <div id="simulationControlsContent">
+      <div class="control-group">
+        <label for="toggleTracking">Toggle Vehicle Tracking:</label>
+        <button id="toggleTracking">Enable Tracking</button>
+      </div>
+      <div class="control-group vehicle-speed-row">
+        <label for="vehicleSpeed">Vehicle Speed:</label>
+        <input type="range" id="vehicleSpeed" min="2.0" max="5.0" step="0.1" value="2.0">
+        <span id="speedValue">36.0 km/h</span>
+      </div>
+      <div class="control-group point-size-row">
+        <label for="pointSize">Point Cloud Size:</label>
+        <input type="range" id="pointSize" min="0.5" max="3.0" step="0.1" value="1.2">
+        <span id="pointSizeValue">1.2</span>
+      </div>
+      <hr class="control-divider">
+      <div id="pointcloudControls" class="control-group pointcloud-controls">
+        <div class="pointcloud-controls-header">
+          <label>MLS:</label>
+          <div id="pointcloudButtons"></div>
+        </div>
+        <button id="pausePointclouds" class="pause-pointclouds-btn">Pause Pointclouds</button>
+      </div>
+      <div id="vehicleButtons"></div>
+    </div>
+  </div>
+
+  <div id="navigationPanel" class="navigation-panel hidden">
+    <div class="navigation-title">Navigation</div>
+    <div class="navigation-row">Car speed: <span id="navCarSpeed">x km/h</span></div>
+    <div class="navigation-row">
+      <label for="navParkingInput">Parking spot:</label>
+      <input id="navParkingInput" type="number" min="1" max="236" placeholder="Enter spot #" title="Enter parking spot number">
+    </div>
+    <div class="navigation-row" id="navCalcRow">Calculating... Estimated time and distance</div>
+    <div class="navigation-row"><span id="navStatus">Parked / en Route</span></div>
+  </div>
+  <button id="openNavigationPanel" class="floating-panel-toggle">Navigation</button>
+
+  <!-- Bottom Status Bar -->
+  <div id="bottomStatusBar" class="bottom-status-bar">
+    <div class="status-section left-section">
+      <div class="status-item">
+        <label>FPS:</label>
+        <span id="fpsValue">60</span>
+      </div>
+      <div class="status-item">
+        <label>Render:</label>
+        <span id="renderTimeValue">16ms</span>
+      </div>
+      <div class="status-item">
+        <label>PCs:</label>
+        <span id="pointcloudCountValue">0</span>
+      </div>
+    </div>
+    <div class="status-section source-section">
+      <div class="status-item">
+        <label>Raster SRC:</label>
+        <span id="rasterSource">ODBayVerDOP20cm</span>
+      </div>
+      <div class="status-item">
+        <label>CityGML:</label>
+        <span id="gltfSource">LoD2-ODBayVerGebäudemodelle  </span>
+      </div>
+    </div>
+    <div class="status-section camera-section">
+      <div class="status-item">
+        <label>Camera:</label>
+        <span id="cameraCoordinates">X: 0, Y: 0, Z: 0</span>
+      </div>
+      <div class="status-item">
+        <span>UTM32 (EPSG:25832)</span>
+      </div>
+    </div>
+    <!-- Uklonjena simulation-section sa Point Cloud Parking Detection -->
+  </div>
+
+  <!-- Import map for module resolution -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.163.0/build/three.module.js",
+      "three/examples/jsm/loaders/GLTFLoader.js": "https://unpkg.com/three@0.163.0/examples/jsm/loaders/GLTFLoader.js",
+      "three/examples/jsm/loaders/PCDLoader.js": "https://unpkg.com/three@0.163.0/examples/jsm/loaders/PCDLoader.js",
+      "three/examples/jsm/controls/OrbitControls.js": "https://unpkg.com/three@0.163.0/examples/jsm/controls/OrbitControls.js",
+      "three/examples/jsm/renderers/CSS2DRenderer.js": "https://unpkg.com/three@0.163.0/examples/jsm/renderers/CSS2DRenderer.js",
+      "three/addons/controls/OrbitControls.js": "https://unpkg.com/three@0.163.0/examples/jsm/controls/OrbitControls.js",
+      "three/addons/renderers/CSS2DRenderer.js": "https://unpkg.com/three@0.163.0/examples/jsm/renderers/CSS2DRenderer.js",
+      "mathjs": "https://unpkg.com/mathjs@12.4.1/lib/esm/index.js"
+    }
+  }
+  </script>
+  
+  <!-- WebGL support check -->
+  <script>
+    // Force set title without emoji
+    document.title = 'Parking Detection System';
+    
+    // Check WebGL support before loading the main application
+    function checkWebGLSupport() {
+      const canvas = document.createElement('canvas');
+      const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+      if (!gl) {
+        console.error('WebGL not supported');
+        document.getElementById('container').innerHTML = `
+          <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+                      background: white; padding: 30px; border: 2px solid #333; border-radius: 8px; 
+                      text-align: center; z-index: 9999; max-width: 500px; box-shadow: 0 4px 8px rgba(0,0,0,0.3);">
+            <h3 style="color: #dc3545; margin-bottom: 15px;">WebGL Not Supported</h3>
+            <p style="margin-bottom: 20px; line-height: 1.5;">Your browser does not support WebGL, which is required for this 3D application.</p>
+            <div style="margin-bottom: 15px;">
+              <p style="font-size: 14px; color: #666;">Please try:</p>
+              <ul style="text-align: left; font-size: 14px; color: #666;">
+                <li>Using a different browser (Chrome, Firefox, Edge)</li>
+                <li>Enabling hardware acceleration</li>
+                <li>Updating your graphics drivers</li>
+              </ul>
+            </div>
+            <button onclick="location.reload()" style="padding: 12px 24px; margin: 5px; 
+                         background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;">
+              Try Again
+            </button>
+          </div>
+        `;
+        return false;
+      }
+      return true;
+    }
+    
+    // Check WebGL before loading the main script
+    if (checkWebGLSupport()) {
+      // Load the main application
+      const script = document.createElement('script');
+      script.type = 'module';
+      script.src = 'jssimulation/main2.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    }
+    
+    // Monitor and prevent title changes
+    const originalTitle = 'Parking Detection System';
+    const observer = new MutationObserver(function(mutations) {
+      mutations.forEach(function(mutation) {
+        if (mutation.type === 'childList' && document.title !== originalTitle) {
+          document.title = originalTitle;
+        }
+      });
+    });
+    
+    // Start observing
+    observer.observe(document, {
+      childList: true,
+      subtree: true
+    });
+    
+    // Also set title periodically to prevent changes
+    setInterval(() => {
+      if (document.title !== originalTitle) {
+        document.title = originalTitle;
+      }
+    }, 1000);
+  </script>
+</body>
+</html>

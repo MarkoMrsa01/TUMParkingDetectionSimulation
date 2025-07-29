@@ -1,0 +1,14 @@
+pointclouds:
+./PointCloudDatasets/tum_dynamic_utm/veh01/,2000
+./PointCloudDatasets/tum_dynamic_utm/veh11/,2000
+./PointCloudDatasets/tum_dynamic_utm/veh21/,2000
+./PointCloudDatasets/tum_dynamic_utm/veh31/,2000
+./PointCloudDatasets/tum_dynamic_utm/veh41/,2000
+boundingbox_type:
+json
+boundingboxes:
+./PointCloudDatasets/json/,1
+simulate_traffic:
+yes
+point_size:
+1.2
